@@ -10,6 +10,10 @@ type Api struct {
 	Vaccine Vaccine
 }
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type VaccineProvider struct {
 	Guid, Name                                      string
 	Address1, Address2, City, State, Zipcode, Phone string
@@ -21,11 +25,17 @@ type apiResponse struct {
 	Providers []VaccineProvider
 }
 
-const (
-	url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"
+var (
+	HttpClient HTTPClient
+	url        string
 )
 
-func (a *Api) Request(httpClient *http.Client) ([]VaccineProvider, error) {
+func init() {
+	HttpClient = &http.Client{}
+	url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"
+}
+
+func (a *Api) Request() ([]VaccineProvider, error) {
 	request, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
@@ -45,7 +55,7 @@ func (a *Api) Request(httpClient *http.Client) ([]VaccineProvider, error) {
 	request.Header.Add("Accept", "application/json, text/plain, */*")
 	request.Header.Add("User-Agent", "Mozilla/5.0")
 
-	response, err := httpClient.Do(request)
+	response, err := HttpClient.Do(request)
 	defer response.Body.Close()
 
 	return a.parseProviders(response.Body)
