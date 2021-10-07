@@ -17,8 +17,13 @@ func init() {
 	url = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 }
 
-type Api struct {
+type ApiServer struct {
+	Url   string
 	Token string
+}
+
+type Api struct {
+	Server ApiServer
 }
 
 type Coordinates struct {
@@ -32,20 +37,16 @@ type apiResponse struct {
 	}
 }
 
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
-}
-
-func (a *Api) GeocodePostalCode(postalCode string, client HTTPClient) (Coordinates, error) {
+func (a *Api) GeocodePostalCode(postalCode string) (Coordinates, error) {
 	var coordinates Coordinates
+	httpClient := &http.Client{}
 
-	request, err := a.buildRequest(postalCode)
+	serverUrl := url.parse(a.Server.Url)
+	serverUrl.Path = path.Join(serverUrl.Path, fmt.Sprintf("%s.json", postalCode))
 
-	if err != nil {
-		return coordinates, err
-	}
-
-	response, err := client.Do(request)
+	fmt.Println("Making request")
+	fmt.Println()
+	response, err := httpClient.Do(request)
 
 	defer response.Body.Close()
 
@@ -57,7 +58,7 @@ func (a *Api) GeocodePostalCode(postalCode string, client HTTPClient) (Coordinat
 }
 
 func (a *Api) buildRequest(postalCode string) (*http.Request, error) {
-	request, err := http.NewRequest(http.MethodGet, url, nil)
+	request, err := http.NewRequest(http.MethodGet, a.Server.Url, nil)
 
 	if err != nil {
 		return request, err
@@ -69,9 +70,10 @@ func (a *Api) buildRequest(postalCode string) (*http.Request, error) {
 	q := request.URL.Query()
 	q.Set("country", "us")
 	q.Set("types", "postcode")
-	q.Set("access_token", a.Token)
+	q.Set("access_token", a.Server.Token)
 
 	request.URL.RawQuery = q.Encode()
+	fmt.Println(request.URL)
 
 	return request, nil
 }
