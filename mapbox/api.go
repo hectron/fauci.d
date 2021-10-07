@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"path"
 )
 
@@ -32,15 +31,15 @@ type apiResponse struct {
 
 func (a *Api) GeocodePostalCode(postalCode string) (Coordinates, error) {
 	var coordinates Coordinates
-	//httpClient := &http.Client{}
+	httpClient := &http.Client{}
 
-	serverUrl, _ := url.Parse(a.Server.Url)
-	serverUrl.Path = path.Join(serverUrl.Path, fmt.Sprintf("%s.json", postalCode))
+	request, err := a.buildRequest(postalCode)
 
-	fmt.Println("Making request")
-	fmt.Println(serverUrl)
+	if err != nil {
+		return coordinates, err
+	}
 
-	response, err := http.Get(serverUrl.String())
+	response, err := httpClient.Do(request)
 
 	if err != nil {
 		return coordinates, err
