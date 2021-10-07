@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"path"
 )
 
@@ -55,14 +56,19 @@ func (a *Api) GeocodePostalCode(postalCode string) (Coordinates, error) {
 }
 
 func (a *Api) buildRequest(postalCode string) (*http.Request, error) {
-	request, err := http.NewRequest(http.MethodGet, a.Server.Url, nil)
+	serverUrl, err := url.Parse(a.Server.Url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	serverUrl.Path = path.Join(serverUrl.Path, fmt.Sprintf("%s.json", postalCode))
+
+	request, err := http.NewRequest(http.MethodGet, serverUrl.String(), nil)
 
 	if err != nil {
 		return request, err
 	}
-
-	endpoint := fmt.Sprintf("%s.json", postalCode)
-	request.URL.Path = path.Join(request.URL.Path, endpoint)
 
 	q := request.URL.Query()
 	q.Set("country", "us")
