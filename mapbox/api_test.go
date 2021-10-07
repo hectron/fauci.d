@@ -8,30 +8,30 @@ import (
 )
 
 func TestGeocodePostalCode(t *testing.T) {
-	// t.Run("It returns empty coordinates when the status code is not 200", func(t *testing.T) {
-	// 	mock_http_server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 		w.WriteHeader(http.StatusUnauthorized)
-	// 	}))
-	//
-	// 	defer mock_http_server.Close()
-	//
-	// 	apiServer := ApiServer{Url: mock_http_server.URL, Token: "mocktoken"}
-	// 	api := Api{apiServer}
-	//
-	// 	coordinates, err := api.GeocodePostalCode("60601")
-	//
-	// 	if coordinates.Latitude != 0 || coordinates.Longitude != 0 {
-	// 		t.Errorf(
-	// 			"Expected coordinates to be empty. Got: latitude - %f, longitude - %f",
-	// 			coordinates.Latitude,
-	// 			coordinates.Longitude,
-	// 		)
-	// 	}
-	//
-	// 	if err == nil {
-	// 		t.Errorf("Expected %s, got no error", err)
-	// 	}
-	// })
+	t.Run("It returns empty coordinates when the status code is not 200", func(t *testing.T) {
+		mock_http_server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusUnauthorized)
+		}))
+
+		defer mock_http_server.Close()
+
+		apiServer := ApiServer{Url: mock_http_server.URL, Token: "mocktoken"}
+		api := Api{apiServer}
+
+		coordinates, err := api.GeocodePostalCode("60601")
+
+		if coordinates.Latitude != 0 || coordinates.Longitude != 0 {
+			t.Errorf(
+				"Expected coordinates to be empty. Got: latitude - %f, longitude - %f",
+				coordinates.Latitude,
+				coordinates.Longitude,
+			)
+		}
+
+		if err == nil {
+			t.Errorf("Expected %s, got no error", err)
+		}
+	})
 
 	t.Run("It sends over the params", func(t *testing.T) {
 		expectedCountry := "us"
