@@ -6,16 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"path"
 )
-
-var (
-	url string
-)
-
-func init() {
-	url = "https://api.mapbox.com/geocoding/v5/mapbox.places"
-}
 
 type ApiServer struct {
 	Url   string
@@ -39,14 +32,19 @@ type apiResponse struct {
 
 func (a *Api) GeocodePostalCode(postalCode string) (Coordinates, error) {
 	var coordinates Coordinates
-	httpClient := &http.Client{}
+	//httpClient := &http.Client{}
 
-	serverUrl := url.parse(a.Server.Url)
+	serverUrl, _ := url.Parse(a.Server.Url)
 	serverUrl.Path = path.Join(serverUrl.Path, fmt.Sprintf("%s.json", postalCode))
 
 	fmt.Println("Making request")
-	fmt.Println()
-	response, err := httpClient.Do(request)
+	fmt.Println(serverUrl)
+
+	response, err := http.Get(serverUrl.String())
+
+	if err != nil {
+		return coordinates, err
+	}
 
 	defer response.Body.Close()
 
