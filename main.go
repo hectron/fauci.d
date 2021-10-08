@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
@@ -11,25 +10,23 @@ import (
 
 func main() {
 	mapboxToken := os.Getenv("MAPBOX_API_TOKEN")
-	mapboxApi := mapbox.Api{Token: mapboxToken}
-	httpClient := &http.Client{}
-	coordinates, err := mapboxApi.GeocodePostalCode("60640", httpClient)
+	mapboxClient := mapbox.Client{ApiToken: mapboxToken, ApiUrl: "https://api.mapbox.com/geocoding/v5/mapbox.places"}
+	coordinates, err := mapboxClient.GeocodePostalCode("60640")
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	vaccineApi := vaccines.Api{}
-	client := &http.Client{}
+	vaccineClient := vaccines.Client{ApiUrl: "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"}
 
-	apiRequest := vaccines.ApiRequest{
+	req := vaccines.ApiRequest{
 		Vaccine: vaccines.Moderna,
 		Lat:     coordinates.Latitude,
 		Long:    coordinates.Longitude,
 	}
 
-	providers, err := vaccineApi.Request(apiRequest, client)
+	providers, err := vaccineClient.FindVaccines(req)
 
 	if err == nil {
 		fmt.Println(providers)
