@@ -10,13 +10,8 @@ import (
 	"path"
 )
 
-type ApiServer struct {
-	Url   string
-	Token string
-}
-
-type Api struct {
-	Server ApiServer
+type Client struct {
+	ApiUrl, ApiToken string
 }
 
 type Coordinates struct {
@@ -30,17 +25,22 @@ type apiResponse struct {
 	}
 }
 
-func (a *Api) GeocodePostalCode(postalCode string) (Coordinates, error) {
-	var coordinates Coordinates
-	httpClient := &http.Client{}
+func (c *Client) GeocodePostalCode(postalCode string) (Coordinates, error) {
+	var (
+		coordinates Coordinates
+		httpClient  *http.Client
+		httpRequest *http.Request
+		err         error
+	)
 
-	request, err := a.buildRequest(postalCode)
+	httpClient = &http.Client{}
+	httpRequest, err = c.buildHttpRequest(postalCode)
 
 	if err != nil {
 		return coordinates, err
 	}
 
-	response, err := httpClient.Do(request)
+	response, err := httpClient.Do(httpRequest)
 
 	if err != nil {
 		return coordinates, err
@@ -52,19 +52,19 @@ func (a *Api) GeocodePostalCode(postalCode string) (Coordinates, error) {
 		return coordinates, errors.New(fmt.Sprintf("Mapbox API response: %s", response.Status))
 	}
 
-	return a.parseCoordinates(response.Body)
+	return c.parseCoordinates(response.Body)
 }
 
-func (a *Api) buildRequest(postalCode string) (*http.Request, error) {
-	serverUrl, err := url.Parse(a.Server.Url)
+func (c *Client) buildHttpRequest(postalCode string) (*http.Request, error) {
+	apiUrl, err := url.Parse(c.ApiUrl)
 
 	if err != nil {
 		return nil, err
 	}
 
-	serverUrl.Path = path.Join(serverUrl.Path, fmt.Sprintf("%s.json", postalCode))
+	apiUrl.Path = path.Join(apiUrl.Path, fmt.Sprintf("%s.json", postalCode))
 
-	request, err := http.NewRequest(http.MethodGet, serverUrl.String(), nil)
+	request, err := http.NewRequest(http.MethodGet, apiUrl.String(), nil)
 
 	if err != nil {
 		return request, err
@@ -73,7 +73,7 @@ func (a *Api) buildRequest(postalCode string) (*http.Request, error) {
 	q := request.URL.Query()
 	q.Set("country", "us")
 	q.Set("types", "postcode")
-	q.Set("access_token", a.Server.Token)
+	q.Set("access_token", c.ApiToken)
 
 	request.URL.RawQuery = q.Encode()
 	fmt.Println(request.URL)
@@ -81,7 +81,7 @@ func (a *Api) buildRequest(postalCode string) (*http.Request, error) {
 	return request, nil
 }
 
-func (a *Api) parseCoordinates(r io.Reader) (Coordinates, error) {
+func (c *Client) parseCoordinates(r io.Reader) (Coordinates, error) {
 	var (
 		resp        apiResponse
 		coordinates Coordinates

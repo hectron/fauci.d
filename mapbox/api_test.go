@@ -15,10 +15,8 @@ func TestGeocodePostalCode(t *testing.T) {
 
 		defer mock_http_server.Close()
 
-		apiServer := ApiServer{Url: mock_http_server.URL, Token: "mocktoken"}
-		api := Api{apiServer}
-
-		coordinates, err := api.GeocodePostalCode("60601")
+		client := Client{ApiUrl: mock_http_server.URL, ApiToken: "mocktoken"}
+		coordinates, err := client.GeocodePostalCode("60601")
 
 		if coordinates.Latitude != 0 || coordinates.Longitude != 0 {
 			t.Errorf(
@@ -57,10 +55,9 @@ func TestGeocodePostalCode(t *testing.T) {
 		defer mock_http_server.Close()
 
 		// test the bad case
-		apiServer := ApiServer{Url: mock_http_server.URL, Token: "allegedly-valid-token"}
-		api := Api{apiServer}
+		client := Client{ApiUrl: mock_http_server.URL, ApiToken: "allegedly-valid-token"}
 
-		_, err := api.GeocodePostalCode("60601")
+		_, err := client.GeocodePostalCode("60601")
 
 		want := "Mapbox API response: 401 Unauthorized"
 		got := err.Error()
