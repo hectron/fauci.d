@@ -169,36 +169,6 @@ func TestApiRequest(t *testing.T) {
 				AcceptsWalkIns:        true,
 				AppointmentsAvailable: false,
 				InStock:               true,
-			}, {
-				Guid:                  "aadf16d6-5525-46a6-9f8c-4ada508107bb",
-				Name:                  "Walgreens Co. #15196",
-				Address1:              "Flair Tower, 151 N State St FL 1ST",
-				Address2:              "",
-				City:                  "Chicago",
-				State:                 "IL",
-				Zipcode:               "60601",
-				Phone:                 "312-863-4249",
-				Distance:              0.21,
-				Lat:                   41.884799,
-				Long:                  -87.627623,
-				AcceptsWalkIns:        true,
-				AppointmentsAvailable: false,
-				InStock:               true,
-			}, {
-				Guid:                  "6e0393cd-8040-4f47-945e-9d55b6a4ea98",
-				Name:                  "CVS Pharmacy, Inc. #08910",
-				Address1:              "205 N Columbus Dr",
-				Address2:              "",
-				City:                  "Chicago",
-				State:                 "IL",
-				Zipcode:               "60611",
-				Phone:                 "(312) 861-0315",
-				Distance:              0.22,
-				Lat:                   41.886222,
-				Long:                  -87.619717,
-				AcceptsWalkIns:        true,
-				AppointmentsAvailable: true,
-				InStock:               true,
 			},
 		}
 
@@ -215,7 +185,7 @@ func TestApiRequest(t *testing.T) {
 
 			if got != emptyProvider {
 				if !reflect.DeepEqual(got, want) {
-					t.Errorf("got %v, want %v", got, want)
+					t.Errorf("\ngot:  %v\nwant: %v", got, want)
 				}
 			} else {
 				t.Errorf("want %v, but didn't get anything", want)

@@ -44,36 +44,6 @@
     "accepts_walk_ins" : true,
     "appointments_available" : "UNKNOWN",
     "in_stock" : true
-  }, {
-    "guid" : "aadf16d6-5525-46a6-9f8c-4ada508107bb",
-    "name" : "Walgreens Co. #15196",
-    "address1" : "Flair Tower, 151 N State St FL 1ST",
-    "address2" : "",
-    "city" : "Chicago",
-    "state" : "IL",
-    "zip" : "60601",
-    "phone" : "312-863-4249",
-    "distance" : 0.21,
-    "lat" : 41.884799,
-    "long" : -87.627623,
-    "accepts_walk_ins" : true,
-    "appointments_available" : "UNKNOWN",
-    "in_stock" : true
-  }, {
-    "guid" : "6e0393cd-8040-4f47-945e-9d55b6a4ea98",
-    "name" : "CVS Pharmacy, Inc. #08910",
-    "address1" : "205 N Columbus Dr",
-    "address2" : "",
-    "city" : "Chicago",
-    "state" : "IL",
-    "zip" : "60611",
-    "phone" : "(312) 861-0315",
-    "distance" : 0.22,
-    "lat" : 41.886222,
-    "long" : -87.619717,
-    "accepts_walk_ins" : true,
-    "appointments_available" : "TRUE",
-    "in_stock" : true
   } ],
   "current_page" : 1,
   "total_pages" : 1

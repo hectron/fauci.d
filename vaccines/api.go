@@ -11,10 +11,29 @@ import (
 // url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"
 
 type VaccineProvider struct {
-	Guid, Name                                      string
-	Address1, Address2, City, State, Zipcode, Phone string
-	Distance, Lat, Long                             float64
-	AcceptsWalkIns, AppointmentsAvailable, InStock  bool
+	Guid, Name                             string
+	Address1, Address2, City, State, Phone string
+	Zipcode                                string `json:"zip"`
+	Distance, Lat, Long                    float64
+	AcceptsWalkIns                         bool                    `json:"accepts_walk_ins"`
+	AppointmentsAvailable                  appointmentAvailability `json:"appointments_available"`
+	InStock                                bool                    `json:"in_stock"`
+}
+
+type appointmentAvailability bool
+
+func (a *appointmentAvailability) UnmarshalJSON(data []byte) error {
+	var s string
+
+	err := json.Unmarshal(data, &s)
+
+	if err != nil {
+		return err
+	}
+
+	*a = s == "TRUE"
+
+	return nil
 }
 
 type ApiRequest struct {
