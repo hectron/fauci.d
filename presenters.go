@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/hectron/fauci.d/vaccines"
+	"github.com/slack-go/slack"
 )
 
 func FormatForSlack(providers []vaccines.VaccineProvider) string {
@@ -14,6 +15,15 @@ func FormatForSlack(providers []vaccines.VaccineProvider) string {
 	//
 	// }
 	return ""
+	var (
+		headerText *slack.TextBlockObject
+	)
+
+	headerText = slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("We found *%d* appointments! We will only be displaying the 5 closest to you."))
+
+	msg := slack.NewBlockMessage()
+
+	return msg
 }
 
 func ProviderAsString(provider vaccines.VaccineProvider) string {

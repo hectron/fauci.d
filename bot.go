@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	mapboxClient   *mapbox.Client
+	mapboxClient   mapbox.Client
+	vaccinesClient vaccines.Client
 	slackClient    *slack.Client
-	vaccinesClient *vaccines.Client
 	lambdaInvoked  bool
 )
 
@@ -25,7 +25,7 @@ func init() {
 	lambdaInvoked = os.Getenv("LAMBDA") != ""
 }
 
-func main() {
+func mainT() {
 	if lambdaInvoked {
 		// handle the appropriate request
 	} else {

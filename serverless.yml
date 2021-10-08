@@ -67,7 +67,7 @@ functions:
     events:
       - httpApi:
         path: /pfizer
-        method: get
+        method: post
     environment:
       <<: *base_env
   moderna:
@@ -75,7 +75,7 @@ functions:
     events:
       - httpApi:
         path: /moderna
-        method: get
+        method: post
     environment:
       <<: *base_env
   jj:
@@ -83,7 +83,7 @@ functions:
     events:
       - httpApi:
         path: /jj
-        method: get
+        method: post
     environment:
       <<: *base_env
 #    The following are a few example events you can configure

@@ -20,6 +20,10 @@ type VaccineProvider struct {
 	InStock                                bool                    `json:"in_stock"`
 }
 
+func (v *VaccineProvider) Website() string {
+	return fmt.Sprintf("https://www.vaccines.gov/provider/?id=%s", v.Guid)
+}
+
 type appointmentAvailability bool
 
 func (a *appointmentAvailability) UnmarshalJSON(data []byte) error {
