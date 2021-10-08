@@ -53,7 +53,7 @@ func (c *Client) FindVaccines(request ApiRequest) ([]VaccineProvider, error) {
 		return nil, err
 	}
 
-	if response.StatusCode != 200 {
+	if response.StatusCode != http.StatusOK {
 		return nil, errors.New(fmt.Sprintf("Vaccines API returned with status: %s", response.Status))
 	}
 
