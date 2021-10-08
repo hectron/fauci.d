@@ -8,11 +8,7 @@ import (
 	"net/http"
 )
 
-type Api struct{}
-
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
-}
+// url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"
 
 type VaccineProvider struct {
 	Guid, Name                                      string
@@ -30,16 +26,19 @@ type apiResponse struct {
 	Providers []VaccineProvider
 }
 
-var (
-	url string
-)
-
-func init() {
-	url = "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"
+type Client struct {
+	ApiUrl string
 }
 
-func (a *Api) Request(request ApiRequest, httpClient HTTPClient) ([]VaccineProvider, error) {
-	httpReq, err := http.NewRequest("GET", url, nil)
+func (c *Client) FindVaccines(request ApiRequest) ([]VaccineProvider, error) {
+	var (
+		httpClient *http.Client
+		httpReq    *http.Request
+		response   *http.Response
+		err        error
+	)
+	httpClient = &http.Client{}
+	httpReq, err = http.NewRequest("GET", c.ApiUrl, nil)
 
 	if err != nil {
 		return nil, err
@@ -48,17 +47,22 @@ func (a *Api) Request(request ApiRequest, httpClient HTTPClient) ([]VaccineProvi
 	setQueryString(httpReq, &request)
 	setRequestHeaders(httpReq)
 
-	response, err := httpClient.Do(httpReq)
-	defer response.Body.Close()
+	response, err = httpClient.Do(httpReq)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if response.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("Vaccines API returned with status: %s", response.Status))
 	}
 
-	return a.parseProviders(response.Body)
+	defer response.Body.Close()
+
+	return c.parseProviders(response.Body)
 }
 
-func (a *Api) parseProviders(r io.Reader) ([]VaccineProvider, error) {
+func (c *Client) parseProviders(r io.Reader) ([]VaccineProvider, error) {
 	var resp apiResponse
 
 	body, err := io.ReadAll(r)
