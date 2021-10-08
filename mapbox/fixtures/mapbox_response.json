@@ -1,0 +1,61 @@
+{
+    "type": "FeatureCollection",
+    "query": [
+        "60601"
+    ],
+    "features": [
+        {
+            "id": "postcode.9094874002548200",
+            "type": "Feature",
+            "place_type": [
+                "postcode"
+            ],
+            "relevance": 1,
+            "properties": {},
+            "text": "60601",
+            "place_name": "Chicago, Illinois 60601, United States",
+            "bbox": [
+                -87.6339664435083,
+                41.88082699389,
+                -87.6128999955864,
+                41.8890470074613
+            ],
+            "center": [
+                -87.62354,
+                41.884866
+            ],
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -87.62354,
+                    41.884866
+                ]
+            },
+            "context": [
+                {
+                    "id": "place.9607189446701850",
+                    "wikidata": "Q1297",
+                    "text": "Chicago"
+                },
+                {
+                    "id": "district.8754923997749290",
+                    "wikidata": "Q108418",
+                    "text": "Cook County"
+                },
+                {
+                    "id": "region.10854263468358810",
+                    "wikidata": "Q1204",
+                    "short_code": "US-IL",
+                    "text": "Illinois"
+                },
+                {
+                    "id": "country.19678805456372290",
+                    "wikidata": "Q30",
+                    "short_code": "us",
+                    "text": "United States"
+                }
+            ]
+        }
+    ],
+    "attribution": "NOTICE: © 2021 Mapbox and its suppliers. All rights reserved. Use of this data is subject to the Mapbox Terms of Service (https://www.mapbox.com/about/maps/). This response and the information it contains may not be retained. POI(s) provided by Foursquare."
+}

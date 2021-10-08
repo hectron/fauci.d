@@ -76,7 +76,6 @@ func (c *Client) buildHttpRequest(postalCode string) (*http.Request, error) {
 	q.Set("access_token", c.ApiToken)
 
 	request.URL.RawQuery = q.Encode()
-	fmt.Println(request.URL)
 
 	return request, nil
 }

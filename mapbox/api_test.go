@@ -2,6 +2,7 @@ package mapbox
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,10 +32,16 @@ func TestGeocodePostalCode(t *testing.T) {
 		}
 	})
 
-	t.Run("It sends over the params", func(t *testing.T) {
+	t.Run("sending params", func(t *testing.T) {
 		expectedCountry := "us"
 		expectedTypes := "postcode"
 		expectedAccessToken := "totally-valid-token"
+
+		mockResponse, err := ioutil.ReadFile("fixtures/mapbox_response.json")
+
+		if err != nil {
+			t.Errorf("Could not load fixture for test")
+		}
 
 		serverMux := http.NewServeMux()
 		serverMux.HandleFunc("/60601.json", func(w http.ResponseWriter, r *http.Request) {
@@ -43,27 +50,30 @@ func TestGeocodePostalCode(t *testing.T) {
 				return
 			}
 
-			if r.URL.Query().Get("country") != expectedCountry || r.Header.Get("types") != expectedTypes {
+			if r.URL.Query().Get("country") != expectedCountry || r.URL.Query().Get("types") != expectedTypes {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
 
-			fmt.Fprintf(w, `{ "some": "json" }`)
+			fmt.Fprintf(w, string(mockResponse))
 		})
 
 		mock_http_server := httptest.NewServer(serverMux)
 		defer mock_http_server.Close()
 
-		// test the bad case
-		client := Client{ApiUrl: mock_http_server.URL, ApiToken: "allegedly-valid-token"}
+		client := Client{ApiUrl: mock_http_server.URL, ApiToken: expectedAccessToken}
+		got, err := client.GeocodePostalCode("60601")
 
-		_, err := client.GeocodePostalCode("60601")
+		if err != nil {
+			t.Errorf("Expected no error, but got %s", err)
+		}
 
-		want := "Mapbox API response: 401 Unauthorized"
-		got := err.Error()
-
-		if got != want {
-			t.Errorf("Expected %s, got %s", want, got)
+		if got.Latitude == 0 || got.Longitude == 0 {
+			t.Errorf(
+				"Expected coordinates to be empty. Got: latitude - %f, longitude - %f",
+				got.Latitude,
+				got.Longitude,
+			)
 		}
 	})
 }
