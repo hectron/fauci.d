@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -9,21 +10,53 @@ import (
 )
 
 func FormatForSlack(providers []vaccines.VaccineProvider) string {
-	// var s strings.Builder
-	//
-	// for _, p := range providers {
-	//
-	// }
-	return ""
-	var (
-		headerText *slack.TextBlockObject
-	)
+	blocks := []slack.Block{}
+	divSection := slack.NewDividerBlock()
 
-	headerText = slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("We found *%d* appointments! We will only be displaying the 5 closest to you."))
+	// header section
+	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Found %d providers near you!", len(providers)), false, false)
+	blocks = append(blocks, slack.NewSectionBlock(headerText, nil, nil))
 
-	msg := slack.NewBlockMessage()
+	for idx, provider := range providers {
+		if idx > 10 {
+			break
+		}
 
-	return msg
+		text := slack.NewTextBlockObject("mrkdwn", ProviderAsString(provider), false, false)
+		section := slack.NewSectionBlock(text, nil, nil)
+		blocks = append(blocks, section, divSection)
+	}
+
+	msg := slack.NewBlockMessage(blocks...)
+	b, err := json.MarshalIndent(msg, "", "    ")
+
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return string(b)
+}
+
+func FormatForSlackUsingBlocks(providers []vaccines.VaccineProvider) []slack.Block {
+	blocks := []slack.Block{}
+	divSection := slack.NewDividerBlock()
+
+	// header section
+	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Found %d providers near you!", len(providers)), false, false)
+	blocks = append(blocks, slack.NewSectionBlock(headerText, nil, nil))
+
+	for idx, provider := range providers {
+		if idx > 10 {
+			break
+		}
+
+		text := slack.NewTextBlockObject("mrkdwn", ProviderAsString(provider), false, false)
+		section := slack.NewSectionBlock(text, nil, nil)
+		blocks = append(blocks, section, divSection)
+	}
+
+	return blocks
 }
 
 func ProviderAsString(provider vaccines.VaccineProvider) string {
