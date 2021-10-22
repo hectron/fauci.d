@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/slack-go/slack"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 var (
@@ -22,15 +26,13 @@ func init() {
 	}
 	slackClient = slack.New(os.Getenv("SLACK_API_TOKEN"))
 	vaccinesClient = vaccines.Client{ApiUrl: os.Getenv("VACCINE_API_URL")}
-	lambdaInvoked = os.Getenv("LAMBDA") != ""
+	lambdaInvoked = os.Getenv("LAMBDA") == "true"
 }
 
-func mainT() {
-	if lambdaInvoked {
-		// handle the appropriate request
-	} else {
-		// spin up http server to listen to requests
-		// create servemux for handling routes
-		// delegate accordingly
-	}
+func main() {
+	lambda.Start(SimpleHandler)
+}
+
+func SimpleHandler(ctx context.Context) {
+	fmt.Println("This is a line")
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-func main() {
+func exampleMain() {
 	mapboxApiToken := os.Getenv("MAPBOX_API_TOKEN")
 	slackApiToken := os.Getenv("SLACK_API_TOKEN")
 	mapboxApiUrl := "https://api.mapbox.com/geocoding/v5/mapbox.places"
