@@ -9,20 +9,25 @@ import (
 	"github.com/slack-go/slack"
 )
 
+const (
+	maxNumberOfProviders = 10
+	markdown             = "mrkdwn"
+)
+
 func FormatForSlack(providers []vaccines.VaccineProvider) string {
 	blocks := []slack.Block{}
 	divSection := slack.NewDividerBlock()
 
 	// header section
-	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Found %d providers near you!", len(providers)), false, false)
+	headerText := slack.NewTextBlockObject(markdown, fmt.Sprintf("Found %d providers near you!", len(providers)), false, false)
 	blocks = append(blocks, slack.NewSectionBlock(headerText, nil, nil))
 
 	for idx, provider := range providers {
-		if idx > 10 {
+		if idx > maxNumberOfProviders {
 			break
 		}
 
-		text := slack.NewTextBlockObject("mrkdwn", ProviderAsString(provider), false, false)
+		text := slack.NewTextBlockObject(markdown, ProviderAsString(provider), false, false)
 		section := slack.NewSectionBlock(text, nil, nil)
 		blocks = append(blocks, section, divSection)
 	}
@@ -43,15 +48,15 @@ func FormatForSlackUsingBlocks(providers []vaccines.VaccineProvider) []slack.Blo
 	divSection := slack.NewDividerBlock()
 
 	// header section
-	headerText := slack.NewTextBlockObject("mrkdwn", fmt.Sprintf("Found %d providers near you!", len(providers)), false, false)
+	headerText := slack.NewTextBlockObject(markdown, fmt.Sprintf("Found %d providers near you!", len(providers)), false, false)
 	blocks = append(blocks, slack.NewSectionBlock(headerText, nil, nil))
 
 	for idx, provider := range providers {
-		if idx > 10 {
+		if idx > maxNumberOfProviders {
 			break
 		}
 
-		text := slack.NewTextBlockObject("mrkdwn", ProviderAsString(provider), false, false)
+		text := slack.NewTextBlockObject(markdown, ProviderAsString(provider), false, false)
 		section := slack.NewSectionBlock(text, nil, nil)
 		blocks = append(blocks, section, divSection)
 	}
