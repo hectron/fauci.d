@@ -35,4 +35,12 @@ func main() {
 
 func SimpleHandler(ctx context.Context) {
 	fmt.Println("This is a line")
+	fmt.Println("There are the relevant environment variables:")
+
+	envVars := []string{"LAMBDA", "COMMAND"}
+
+	for _, e := range envVars {
+		fmt.Printf("=== %s\n", e)
+		fmt.Println(os.Getenv(e))
+	}
 }
