@@ -9,6 +9,7 @@ import (
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/slack-go/slack"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
@@ -33,7 +34,7 @@ func main() {
 	lambda.Start(SimpleHandler)
 }
 
-func SimpleHandler(ctx context.Context) {
+func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	fmt.Println("This is a line")
 	fmt.Println("There are the relevant environment variables:")
 
@@ -43,4 +44,6 @@ func SimpleHandler(ctx context.Context) {
 		fmt.Printf("=== %s\n", e)
 		fmt.Println(os.Getenv(e))
 	}
+
+	return events.APIGatewayProxyResponse{Body: request.Body, StatusCode: 200}, nil
 }
