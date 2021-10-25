@@ -13,11 +13,11 @@ const (
 	markdown             = "mrkdwn"
 )
 
-func BuildSlackBlocksForProviders(postalCode string, providers []vaccines.VaccineProvider) []slack.Block {
+func BuildSlackBlocksForProviders(postalCode string, vaccineName string, providers []vaccines.VaccineProvider) []slack.Block {
 	blocks := []slack.Block{}
 	divSection := slack.NewDividerBlock()
 
-	text := fmt.Sprintf("Found %d providers near %s!", len(providers), postalCode)
+	text := fmt.Sprintf("Found %d providers near %s offering appointments for %s!", len(providers), postalCode, vaccineName)
 
 	if len(providers) > maxNumberOfProviders {
 		text = text + fmt.Sprintf(" Only displaying the closest %d.", maxNumberOfProviders)
@@ -41,7 +41,7 @@ func BuildSlackBlocksForProviders(postalCode string, providers []vaccines.Vaccin
 
 func ProviderAsString(provider vaccines.VaccineProvider) string {
 	return fmt.Sprintf(
-		"**<%s|%s>** - %s, %s, %s %s (about %s miles away). Phone Number: %s",
+		"<%s|%s> - %s, %s, %s %s (about %s miles away). Phone Number: %s",
 		provider.Website(),
 		provider.Name,
 		provider.Address1,

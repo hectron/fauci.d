@@ -51,7 +51,6 @@ provider:
 #    variable1: value1
   environment:
     LAMBDA: true
-    SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
     MAPBOX_API_TOKEN: ${env:MAPBOX_API_TOKEN}
     MAPBOX_API_URL: ${env:MAPBOX_API_URL}
     VACCINE_API_URL: ${env:VACCINE_API_URL}
@@ -62,30 +61,14 @@ package:
     - ./bin/**
 
 functions:
-  pfizer:
+  slackbot:
     handler: bin/bot
     events:
       - http:
-          path: /pfizer
+          path: /slackbot
           method: post
     environment:
-      COMMAND: pfizer
-  moderna:
-    handler: bin/bot
-    events:
-      - http:
-          path: /moderna
-          method: post
-    environment:
-      COMMAND: moderna
-  jj:
-    handler: bin/bot
-    events:
-      - http:
-          path: /jj
-          method: post
-    environment:
-      COMMAND: jj
+      SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

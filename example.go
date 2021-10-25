@@ -41,7 +41,7 @@ func exampleMain() {
 	}
 
 	channelId := "CUP3PES12"
-	blocks := BuildSlackBlocksForProviders(postalCode, providers)
+	blocks := BuildSlackBlocksForProviders(postalCode, "moderna", providers)
 	slackApi := slack.New(slackApiToken)
 	slackApi.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
 

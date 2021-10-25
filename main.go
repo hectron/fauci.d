@@ -65,6 +65,7 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 	postalCode := m.Get("text")
 	channelId := m.Get("channel_id")
+	vaccineCommand := m.Get("command")
 
 	if postalCode == "" {
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("No postal code supplied")
@@ -82,8 +83,18 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not geocode the postal code")
 	}
 
+	var vaccine vaccines.Vaccine
+
+	if vaccineCommand == "/pfizer" {
+		vaccine = vaccines.Pfizer
+	} else if vaccineCommand == "/moderna" {
+		vaccine = vaccines.Moderna
+	} else if vaccineCommand == "/jj" {
+		vaccine = vaccines.JJ
+	}
+
 	req := vaccines.ApiRequest{
-		Vaccine: vaccines.Moderna,
+		Vaccine: vaccine,
 		Lat:     coordinates.Latitude,
 		Long:    coordinates.Longitude,
 	}
@@ -96,7 +107,7 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
 	}
 
-	blocks := BuildSlackBlocksForProviders(postalCode, providers)
+	blocks := BuildSlackBlocksForProviders(postalCode, vaccine.String(), providers)
 	slackClient.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
 
 	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
