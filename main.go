@@ -9,6 +9,7 @@ import (
 
 	"github.com/hectron/fauci.d/mapbox"
 	"github.com/hectron/fauci.d/vaccines"
+	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -61,6 +62,42 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 	fmt.Printf("Request: %s", request.Body)
 	fmt.Printf("json body: %s", string(jsonBody))
+
+	postalCode := m.Get("text")
+	channelId := m.Get("channel_id")
+
+	if postalCode == "" {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("No postal code supplied")
+	}
+
+	if channelId == "" {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not determine channel to post to")
+	}
+
+	fmt.Printf("Requested postal code `%s` in channel id `%s`", postalCode, channelId)
+	coordinates, err := mapboxClient.GeocodePostalCode(postalCode)
+
+	if err != nil {
+		fmt.Println(err)
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not geocode the postal code")
+	}
+
+	req := vaccines.ApiRequest{
+		Vaccine: vaccines.Moderna,
+		Lat:     coordinates.Latitude,
+		Long:    coordinates.Longitude,
+	}
+
+	providers, err := vaccinesClient.FindVaccines(req)
+
+	if err != nil {
+		fmt.Println("Could not load response")
+		fmt.Println(err)
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
+	}
+
+	blocks := FormatForSlackUsingBlocks(providers)
+	slackClient.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
 
 	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
 }
