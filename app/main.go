@@ -39,16 +39,6 @@ func main() {
 }
 
 func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	fmt.Println("This is a line")
-	fmt.Println("There are the relevant environment variables:")
-
-	envVars := []string{"LAMBDA", "COMMAND"}
-
-	for _, e := range envVars {
-		fmt.Printf("=== %s\n", e)
-		fmt.Println(os.Getenv(e))
-	}
-
 	m, err := url.ParseQuery(request.Body)
 
 	if err != nil {
@@ -61,8 +51,8 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
 	}
 
-	fmt.Printf("Request: %s", request.Body)
-	fmt.Printf("json body: %s", string(jsonBody))
+	fmt.Printf("=== Request: %s\n", request.Body)
+	fmt.Printf("=== json body: %s\n", string(jsonBody))
 
 	postalCode := m.Get("text")
 	channelId := m.Get("channel_id")
@@ -76,7 +66,7 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not determine channel to post to")
 	}
 
-	fmt.Printf("Requested postal code `%s` in channel id `%s`", postalCode, channelId)
+	fmt.Printf("=== Requested postal code `%s` in channel id `%s`", postalCode, channelId)
 	coordinates, err := mapboxClient.GeocodePostalCode(postalCode)
 
 	if err != nil {

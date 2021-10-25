@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	maxNumberOfProviders = 10
+	maxNumberOfProviders = 5
 	markdown             = "mrkdwn"
 )
 
@@ -17,7 +17,7 @@ func BuildBlocksForProviders(postalCode string, vaccineName string, providers []
 	blocks := []slackGo.Block{}
 	divSection := slackGo.NewDividerBlock()
 
-	text := fmt.Sprintf("Found %d providers near %s offering appointments for %s!", len(providers), postalCode, vaccineName)
+	text := fmt.Sprintf("Found %d providers near %s offering %s appointments.", len(providers), postalCode, vaccineName)
 
 	if len(providers) > maxNumberOfProviders {
 		text = text + fmt.Sprintf(" Only displaying the closest %d.", maxNumberOfProviders)
