@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: fauci.d
+service: faucid
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -49,12 +49,11 @@ provider:
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
-base_env: &base_env
-  LAMBDA: true
-  SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
-  MAPBOX_API_TOKEN: ${env:MAPBOX_API_TOKEN}
-  MAPBOX_API_URL: ${env:MAPBOX_API_URL}
-  VACCINE_API_URL: ${env:VACCINE_API_URL}
+  environment:
+    LAMBDA: true
+    MAPBOX_API_TOKEN: ${env:MAPBOX_API_TOKEN}
+    MAPBOX_API_URL: ${env:MAPBOX_API_URL}
+    VACCINE_API_URL: ${env:VACCINE_API_URL}
 
 package:
   patterns:
@@ -62,30 +61,14 @@ package:
     - ./bin/**
 
 functions:
-  pfizer:
-    handler: bin/pfizer
+  slackbot:
+    handler: bin/bot
     events:
-      - httpApi:
-        path: /pfizer
-        method: post
+      - http:
+          path: /slackbot
+          method: post
     environment:
-      <<: *base_env
-  moderna:
-    handler: bin/moderna
-    events:
-      - httpApi:
-        path: /moderna
-        method: post
-    environment:
-      <<: *base_env
-  jj:
-    handler: bin/jj
-    events:
-      - httpApi:
-        path: /jj
-        method: post
-    environment:
-      <<: *base_env
+      SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

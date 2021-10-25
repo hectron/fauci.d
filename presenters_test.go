@@ -13,7 +13,7 @@ func TestProviderAsString(t *testing.T) {
 	}{
 		{
 			"It formats a provider correctly",
-			"<https://www.vaccines.gov/provider/?id=1|**Tester**> located at 123 Fake St, Milwaukee, WI 53201 (about 0.5 miles away). Phone Number: (312) 111-5555",
+			"<https://www.vaccines.gov/provider/?id=1|Tester> - 123 Fake St, Milwaukee, WI 53201 (about 0.5 miles away). Phone Number: (312) 111-5555",
 			vaccines.VaccineProvider{
 				Guid:     "1",
 				Name:     "Tester",
@@ -27,7 +27,7 @@ func TestProviderAsString(t *testing.T) {
 		},
 		{
 			"It formats a provider with a single-decimal distance correctly",
-			"<https://www.vaccines.gov/provider/?id=1|**Tester**> located at 123 Fake St, Milwaukee, WI 53201 (about 0.5 miles away). Phone Number: ",
+			"<https://www.vaccines.gov/provider/?id=1|Tester> - 123 Fake St, Milwaukee, WI 53201 (about 0.5 miles away). Phone Number: ",
 			vaccines.VaccineProvider{
 				Guid:     "1",
 				Name:     "Tester",
@@ -41,7 +41,7 @@ func TestProviderAsString(t *testing.T) {
 		},
 		{
 			"It formats a provider with a two-decimal distance correctly",
-			"<https://www.vaccines.gov/provider/?id=1|**Tester**> located at 123 Fake St, Milwaukee, WI 53201 (about 0.5 miles away). Phone Number: ",
+			"<https://www.vaccines.gov/provider/?id=1|Tester> - 123 Fake St, Milwaukee, WI 53201 (about 0.5 miles away). Phone Number: ",
 			vaccines.VaccineProvider{
 				Guid:     "1",
 				Name:     "Tester",
@@ -55,7 +55,7 @@ func TestProviderAsString(t *testing.T) {
 		},
 		{
 			"It limits the distance to two decimal places maximum",
-			"<https://www.vaccines.gov/provider/?id=1|**Tester**> located at 123 Fake St, Milwaukee, WI 53201 (about 0.84 miles away). Phone Number: ",
+			"<https://www.vaccines.gov/provider/?id=1|Tester> - 123 Fake St, Milwaukee, WI 53201 (about 0.84 miles away). Phone Number: ",
 			vaccines.VaccineProvider{
 				Guid:     "1",
 				Name:     "Tester",
@@ -69,7 +69,7 @@ func TestProviderAsString(t *testing.T) {
 		},
 		{
 			"It does not show the decimal distance if the distance is a whole number",
-			"<https://www.vaccines.gov/provider/?id=1|**Tester**> located at 123 Fake St, Milwaukee, WI 53201 (about 3 miles away). Phone Number: ",
+			"<https://www.vaccines.gov/provider/?id=1|Tester> - 123 Fake St, Milwaukee, WI 53201 (about 3 miles away). Phone Number: ",
 			vaccines.VaccineProvider{
 				Guid:     "1",
 				Name:     "Tester",

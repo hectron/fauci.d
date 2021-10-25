@@ -38,3 +38,28 @@ go run example.go
 - Test individual package: `go test <package>`
 - Test vaccines package: `go test github.com/hectron/fauci.d/vaccines`
 
+## Deployment
+
+In order to deploy the application, you will need:
+
+- [Make](https://www.gnu.org/software/make/)
+- [serverless CLI](https://www.serverless.com/framework/docs/providers), [**configured to support AWS**](https://www.serverless.com/framework/docs/providers/aws/guide/installation)
+You'll also want to make sure that the environment variables defined in
+[`serverless.yml`](https://github.com/hectron/fauci.d/blob/main/serverless.yml#L52-L57) are available.
+
+### Actual deployment
+
+```bash
+make deploy
+```
+### Testing deploy
+
+```bash
+serverless invoke -f moderna -l
+```
+
+### Destroying the lambda (permanently)
+
+```bash
+serverless remove
+```

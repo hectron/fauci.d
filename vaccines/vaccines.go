@@ -17,3 +17,15 @@ var vaccineToGuid = map[Vaccine]string{
 func (v Vaccine) Guid() string {
 	return vaccineToGuid[v]
 }
+
+func (v Vaccine) String() string {
+	if v == Pfizer {
+		return "pfizer"
+	} else if v == Moderna {
+		return "moderna"
+	} else if v == JJ {
+		return "jj"
+	}
+
+	return ""
+}
