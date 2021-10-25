@@ -23,7 +23,9 @@ func (v Vaccine) String() string {
 		return "pfizer"
 	} else if v == Moderna {
 		return "moderna"
+	} else if v == JJ {
+		return "jj"
 	}
 
-	return "jj"
+	return ""
 }

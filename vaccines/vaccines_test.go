@@ -34,3 +34,41 @@ func TestVaccineGuid(t *testing.T) {
 		})
 	}
 }
+
+func TestVaccineString(t *testing.T) {
+	testCases := []struct {
+		Description, Want string
+		Vaccine           Vaccine
+	}{
+		{
+			Description: "Pfizer returns \"pfizer\"",
+			Want:        "pfizer",
+			Vaccine:     Pfizer,
+		},
+		{
+			Description: "Moderna returns \"moderna\"",
+			Want:        "moderna",
+			Vaccine:     Moderna,
+		},
+		{
+			Description: "Johnson & Johnson returns \"jj\"",
+			Want:        "jj",
+			Vaccine:     JJ,
+		},
+		{
+			Description: "A vaccine name that is not recognized returns an empty string",
+			Want:        "",
+			Vaccine:     4,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			got := testCase.Vaccine.String()
+
+			if got != testCase.Want {
+				t.Errorf("got %v, want %v", got, testCase.Want)
+			}
+		})
+	}
+}
