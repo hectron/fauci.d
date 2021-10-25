@@ -14,9 +14,10 @@ func exampleMain() {
 	slackApiToken := os.Getenv("SLACK_API_TOKEN")
 	mapboxApiUrl := "https://api.mapbox.com/geocoding/v5/mapbox.places"
 	vaccineApiUrl := "https://api.us.castlighthealth.com/vaccine-finder/v1/provider-locations/search"
+	postalCode := "60640"
 
 	mapboxClient := mapbox.Client{ApiToken: mapboxApiToken, ApiUrl: mapboxApiUrl}
-	coordinates, err := mapboxClient.GeocodePostalCode("60640")
+	coordinates, err := mapboxClient.GeocodePostalCode(postalCode)
 
 	if err != nil {
 		fmt.Println(err)
@@ -40,7 +41,7 @@ func exampleMain() {
 	}
 
 	channelId := "CUP3PES12"
-	blocks := FormatForSlackUsingBlocks(providers)
+	blocks := BuildSlackBlocksForProviders(postalCode, providers)
 	slackApi := slack.New(slackApiToken)
 	slackApi.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
 

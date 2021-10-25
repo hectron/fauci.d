@@ -96,7 +96,7 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
 	}
 
-	blocks := FormatForSlackUsingBlocks(providers)
+	blocks := BuildSlackBlocksForProviders(postalCode, providers)
 	slackClient.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
 
 	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
