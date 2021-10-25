@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
@@ -45,5 +47,20 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		fmt.Println(os.Getenv(e))
 	}
 
-	return events.APIGatewayProxyResponse{Body: request.Body, StatusCode: 200}, nil
+	m, err := url.ParseQuery(request.Body)
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
+	}
+
+	jsonBody, err := json.Marshal(m)
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
+	}
+
+	fmt.Printf("Request: %s", request.Body)
+	fmt.Printf("json body: %s", string(jsonBody))
+
+	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
 }
