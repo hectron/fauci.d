@@ -61,6 +61,9 @@ package:
     - ./bin/**
 
 functions:
+  # Currently, every Slack slash command goes directly to this event handler
+  # In the future, if we decide to add another chat-bot such as a Discord bot,
+  # we can add another function to specifically handle that.
   slackbot:
     handler: bin/bot
     events:
@@ -69,6 +72,7 @@ functions:
           method: post
     environment:
       SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details

@@ -8,9 +8,10 @@ import (
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
+	"github.com/hectron/fauci.d/slack"
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
+	slackGo "github.com/slack-go/slack"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,7 +20,7 @@ import (
 var (
 	mapboxClient   mapbox.Client
 	vaccinesClient vaccines.Client
-	slackClient    *slack.Client
+	slackClient    *slackGo.Client
 	lambdaInvoked  bool
 )
 
@@ -28,7 +29,7 @@ func init() {
 		ApiToken: os.Getenv("MAPBOX_API_TOKEN"),
 		ApiUrl:   os.Getenv("MAPBOX_API_URL"),
 	}
-	slackClient = slack.New(os.Getenv("SLACK_API_TOKEN"))
+	slackClient = slackGo.New(os.Getenv("SLACK_API_TOKEN"))
 	vaccinesClient = vaccines.Client{ApiUrl: os.Getenv("VACCINE_API_URL")}
 	lambdaInvoked = os.Getenv("LAMBDA") == "true"
 }
@@ -38,16 +39,6 @@ func main() {
 }
 
 func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	fmt.Println("This is a line")
-	fmt.Println("There are the relevant environment variables:")
-
-	envVars := []string{"LAMBDA", "COMMAND"}
-
-	for _, e := range envVars {
-		fmt.Printf("=== %s\n", e)
-		fmt.Println(os.Getenv(e))
-	}
-
 	m, err := url.ParseQuery(request.Body)
 
 	if err != nil {
@@ -60,8 +51,8 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
 	}
 
-	fmt.Printf("Request: %s", request.Body)
-	fmt.Printf("json body: %s", string(jsonBody))
+	fmt.Printf("=== Request: %s\n", request.Body)
+	fmt.Printf("=== json body: %s\n", string(jsonBody))
 
 	postalCode := m.Get("text")
 	channelId := m.Get("channel_id")
@@ -75,7 +66,7 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not determine channel to post to")
 	}
 
-	fmt.Printf("Requested postal code `%s` in channel id `%s`", postalCode, channelId)
+	fmt.Printf("=== Requested postal code `%s` in channel id `%s`", postalCode, channelId)
 	coordinates, err := mapboxClient.GeocodePostalCode(postalCode)
 
 	if err != nil {
@@ -107,8 +98,8 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
 	}
 
-	blocks := BuildSlackBlocksForProviders(postalCode, vaccine.String(), providers)
-	slackClient.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
+	blocks := slack.BuildBlocksForProviders(postalCode, vaccine.String(), providers)
+	slackClient.PostMessage(channelId, slackGo.MsgOptionBlocks(blocks...))
 
 	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
 }

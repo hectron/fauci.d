@@ -23,8 +23,8 @@ If you want to test out this application locally, you'll need to [set up a Slack
 
 Useful files:
 
-- `example.go` -- how to search for a vaccine and post a message to Slack with the results.
-- `slack_bot_manifest.yml` -- example configuration settings for a Slack app.
+- `examples/sample_bot.go` -- how to search for a vaccine and post a message to Slack with the results.
+- `slack/bot_manifest.yml` -- example configuration settings for a Slack app.
 
 To run the example:
 
@@ -44,8 +44,7 @@ In order to deploy the application, you will need:
 
 - [Make](https://www.gnu.org/software/make/)
 - [serverless CLI](https://www.serverless.com/framework/docs/providers), [**configured to support AWS**](https://www.serverless.com/framework/docs/providers/aws/guide/installation)
-You'll also want to make sure that the environment variables defined in
-[`serverless.yml`](https://github.com/hectron/fauci.d/blob/main/serverless.yml#L52-L57) are available.
+- Environment variables required in [`serverless.yml`](https://github.com/hectron/fauci.d/blob/main/serverless.yml#L52-L57)
 
 ### Actual deployment
 
