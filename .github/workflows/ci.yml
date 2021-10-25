@@ -21,4 +21,4 @@ jobs:
           go-version: 1.17.x
 
       - name: 👩‍🔬Run test suite
-        run: go test ./...
+        run: make test

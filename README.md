@@ -34,7 +34,7 @@ go run example.go
 
 ## Running the test suite
 
-- Test entire suite: `go test ./...`
+- Test entire suite: `go test ./...` or `make test`
 - Test individual package: `go test <package>`
 - Test vaccines package: `go test github.com/hectron/fauci.d/vaccines`
 
