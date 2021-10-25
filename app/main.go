@@ -8,9 +8,10 @@ import (
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
+	"github.com/hectron/fauci.d/slack"
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
+	slackGo "github.com/slack-go/slack"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -19,7 +20,7 @@ import (
 var (
 	mapboxClient   mapbox.Client
 	vaccinesClient vaccines.Client
-	slackClient    *slack.Client
+	slackClient    *slackGo.Client
 	lambdaInvoked  bool
 )
 
@@ -28,7 +29,7 @@ func init() {
 		ApiToken: os.Getenv("MAPBOX_API_TOKEN"),
 		ApiUrl:   os.Getenv("MAPBOX_API_URL"),
 	}
-	slackClient = slack.New(os.Getenv("SLACK_API_TOKEN"))
+	slackClient = slackGo.New(os.Getenv("SLACK_API_TOKEN"))
 	vaccinesClient = vaccines.Client{ApiUrl: os.Getenv("VACCINE_API_URL")}
 	lambdaInvoked = os.Getenv("LAMBDA") == "true"
 }
@@ -107,8 +108,8 @@ func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
 	}
 
-	blocks := BuildSlackBlocksForProviders(postalCode, vaccine.String(), providers)
-	slackClient.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
+	blocks := slack.BuildBlocksForProviders(postalCode, vaccine.String(), providers)
+	slackClient.PostMessage(channelId, slackGo.MsgOptionBlocks(blocks...))
 
 	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
 }

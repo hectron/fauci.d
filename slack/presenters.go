@@ -1,11 +1,11 @@
-package main
+package slack
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/hectron/fauci.d/vaccines"
-	"github.com/slack-go/slack"
+	slackGo "github.com/slack-go/slack"
 )
 
 const (
@@ -13,9 +13,9 @@ const (
 	markdown             = "mrkdwn"
 )
 
-func BuildSlackBlocksForProviders(postalCode string, vaccineName string, providers []vaccines.VaccineProvider) []slack.Block {
-	blocks := []slack.Block{}
-	divSection := slack.NewDividerBlock()
+func BuildBlocksForProviders(postalCode string, vaccineName string, providers []vaccines.VaccineProvider) []slackGo.Block {
+	blocks := []slackGo.Block{}
+	divSection := slackGo.NewDividerBlock()
 
 	text := fmt.Sprintf("Found %d providers near %s offering appointments for %s!", len(providers), postalCode, vaccineName)
 
@@ -23,16 +23,16 @@ func BuildSlackBlocksForProviders(postalCode string, vaccineName string, provide
 		text = text + fmt.Sprintf(" Only displaying the closest %d.", maxNumberOfProviders)
 	}
 	// header section
-	headerText := slack.NewTextBlockObject(markdown, text, false, false)
-	blocks = append(blocks, slack.NewSectionBlock(headerText, nil, nil))
+	headerText := slackGo.NewTextBlockObject(markdown, text, false, false)
+	blocks = append(blocks, slackGo.NewSectionBlock(headerText, nil, nil))
 
 	for idx, provider := range providers {
 		if idx > maxNumberOfProviders {
 			break
 		}
 
-		text := slack.NewTextBlockObject(markdown, ProviderAsString(provider), false, false)
-		section := slack.NewSectionBlock(text, nil, nil)
+		text := slackGo.NewTextBlockObject(markdown, ProviderAsString(provider), false, false)
+		section := slackGo.NewSectionBlock(text, nil, nil)
 		blocks = append(blocks, section, divSection)
 	}
 

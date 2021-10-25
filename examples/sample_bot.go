@@ -5,8 +5,9 @@ import (
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
+	"github.com/hectron/fauci.d/slack"
 	"github.com/hectron/fauci.d/vaccines"
-	"github.com/slack-go/slack"
+	slackGo "github.com/slack-go/slack"
 )
 
 func exampleMain() {
@@ -41,9 +42,9 @@ func exampleMain() {
 	}
 
 	channelId := "CUP3PES12"
-	blocks := BuildSlackBlocksForProviders(postalCode, "moderna", providers)
-	slackApi := slack.New(slackApiToken)
-	slackApi.PostMessage(channelId, slack.MsgOptionBlocks(blocks...))
+	blocks := slack.BuildBlocksForProviders(postalCode, "moderna", providers)
+	slackApi := slackGo.New(slackApiToken)
+	slackApi.PostMessage(channelId, slackGo.MsgOptionBlocks(blocks...))
 
 	fmt.Printf("Succesful message sent to channel %s", channelId)
 }
