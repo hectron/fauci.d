@@ -65,11 +65,16 @@ functions:
   # In the future, if we decide to add another chat-bot such as a Discord bot,
   # we can add another function to specifically handle that.
   slackbot:
-    handler: bin/bot
+    handler: bin/slackbot_handler
     events:
       - http:
           path: /slackbot
           method: post
+    environment:
+      SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
+
+  slackbot_backend:
+    handler: bin/slackbot_backend
     environment:
       SLACK_API_TOKEN: ${env:SLACK_API_TOKEN}
 
