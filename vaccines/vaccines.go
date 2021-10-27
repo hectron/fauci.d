@@ -2,6 +2,8 @@ package vaccines
 
 type Vaccine int
 
+const Null = -1
+
 const (
 	Pfizer Vaccine = iota
 	Moderna
@@ -19,13 +21,14 @@ func (v Vaccine) Guid() string {
 }
 
 func (v Vaccine) String() string {
-	if v == Pfizer {
+	switch v {
+	case Pfizer:
 		return "pfizer"
-	} else if v == Moderna {
+	case Moderna:
 		return "moderna"
-	} else if v == JJ {
+	case JJ:
 		return "jj"
+	default:
+		return ""
 	}
-
-	return ""
 }

@@ -2,19 +2,20 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 
 	"github.com/hectron/fauci.d/mapbox"
-	"github.com/hectron/fauci.d/slack"
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/pkg/errors"
 	slackGo "github.com/slack-go/slack"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
 var (
@@ -35,71 +36,82 @@ func init() {
 }
 
 func main() {
-	lambda.Start(SimpleHandler)
+	lambda.Start(IncomingMessageHandler)
 }
 
-func SimpleHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	m, err := url.ParseQuery(request.Body)
+func IncomingMessageHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var (
+		m                     url.Values
+		err                   error
+		channelId, postalCode string
+		vaccine               vaccines.Vaccine
+	)
 
-	if err != nil {
-		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
-	}
-
-	jsonBody, err := json.Marshal(m)
+	m, err = url.ParseQuery(request.Body)
 
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
 	}
 
 	fmt.Printf("=== Request: %s\n", request.Body)
-	fmt.Printf("=== json body: %s\n", string(jsonBody))
 
-	postalCode := m.Get("text")
-	channelId := m.Get("channel_id")
-	vaccineCommand := m.Get("command")
-
-	if postalCode == "" {
+	if postalCode = m.Get("text"); postalCode == "" {
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("No postal code supplied")
 	}
 
-	if channelId == "" {
+	if channelId = m.Get("channel_id"); channelId == "" {
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not determine channel to post to")
 	}
 
 	fmt.Printf("=== Requested postal code `%s` in channel id `%s`", postalCode, channelId)
-	coordinates, err := mapboxClient.GeocodePostalCode(postalCode)
 
-	if err != nil {
-		fmt.Println(err)
-		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not geocode the postal code")
-	}
-
-	var vaccine vaccines.Vaccine
-
-	if vaccineCommand == "/pfizer" {
+	switch vaccineCommand := m.Get("command"); vaccineCommand {
+	case "/pfizer":
 		vaccine = vaccines.Pfizer
-	} else if vaccineCommand == "/moderna" {
+	case "/moderna":
 		vaccine = vaccines.Moderna
-	} else if vaccineCommand == "/jj" {
+	case "/jj":
 		vaccine = vaccines.JJ
+	default:
+		vaccine = vaccines.Null
 	}
 
-	req := vaccines.ApiRequest{
-		Vaccine: vaccine,
-		Lat:     coordinates.Latitude,
-		Long:    coordinates.Longitude,
+	if vaccine != vaccines.Null {
+		invokeVaccineFinderLambda(channelId, postalCode, vaccine)
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 200}, nil
 	}
 
-	providers, err := vaccinesClient.FindVaccines(req)
+	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Invalid request")
 
-	if err != nil {
-		fmt.Println("Could not load response")
-		fmt.Println(err)
-		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
-	}
+	// coordinates, err := mapboxClient.GeocodePostalCode(postalCode)
 
-	blocks := slack.BuildBlocksForProviders(postalCode, vaccine.String(), providers)
-	slackClient.PostMessage(channelId, slackGo.MsgOptionBlocks(blocks...))
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not geocode the postal code")
+	// }
 
-	return events.APIGatewayProxyResponse{Body: string(jsonBody), StatusCode: 200}, nil
+	// req := vaccines.ApiRequest{
+	// 	Vaccine: vaccine,
+	// 	Lat:     coordinates.Latitude,
+	// 	Long:    coordinates.Longitude,
+	// }
+
+	// providers, err := vaccinesClient.FindVaccines(req)
+
+	// if err != nil {
+	// 	fmt.Println("Could not load response")
+	// 	fmt.Println(err)
+	// 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Unable to retrieve providers")
+	// }
+
+	// blocks := slack.BuildBlocksForProviders(postalCode, vaccine.String(), providers)
+	// slackClient.PostMessage(channelId, slackGo.MsgOptionBlocks(blocks...))
+}
+
+func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vaccines.Vaccine) {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	client := lambda.New(sess, &aws.Config{Region: aws.String("us-east-2")})
 }
