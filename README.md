@@ -1,5 +1,7 @@
 # fauci.d
 
+![Fauci showing how getting vaccinated is cool](https://cdn.vidyard.com/thumbnails/7814513/50jFqyrE1bufVRU_JXZct5UCKTudWzcX.gif)
+
 This repository contains a Slack bot that finds COVID-19 vaccines in the United States.
 
 The application registers each vaccine as [a Slack `slash command`](https://api.slack.com/interactivity/slash-commands):
@@ -71,7 +73,7 @@ make deploy
 ### Testing deploy
 
 ```bash
-serverless invoke -f moderna -l
+serverless invoke -f slackbot -t
 ```
 
 ### Destroying the lambda (permanently)
