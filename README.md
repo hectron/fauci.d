@@ -14,6 +14,23 @@ For example, if you wanted to find `Pfizer` vaccinations near `60601`, you'd run
 /pfizer 60601
 ```
 
+## Architecture
+
+This repository uses [Serverless](https://www.serverless.com) to provide bot functionality to Slack. We use
+[Serverless](https://serverless.com) to spin up the infrastructure needed to run an AWS lambda (we could also spin up
+BCP or Azure  functions using Serverless).
+
+The functions are stored in the `functions` directory, by chat program.
+
+Within the Slack directory, there are two folders -- `backend` and `handler`. The `handler` is the interface that we
+provide to the Slack. The `backend` is the interface that gathers the providers, and presents them to the user. We use
+this pattern because Slack slash commands need to be acknowledged within 3 seconds. Some provider searches can take over
+8 seconds.
+
+The handler receives the request, and immediately responds to Slack with a 200, indicating that
+we've acknowledged the request. The handler also asynchronously invokes the `backend` lambda, which can take a little
+bit longer to load the providers and notify the user in Slack.
+
 ## Development
 
 If you want to test out this application locally, you'll need to [set up a Slack App for your workspace](https://app.slack.com/apps-manage/).  You'll also want to setup the following environment variables:
