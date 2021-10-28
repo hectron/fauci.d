@@ -7,10 +7,9 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/hectron/fauci.d/mapbox"
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/pkg/errors"
-	slackGo "github.com/slack-go/slack"
+	"github.com/slack-go/slack"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -20,17 +19,10 @@ import (
 )
 
 var (
-	mapboxClient               mapbox.Client
-	vaccinesClient             vaccines.Client
-	slackClient                *slackGo.Client
-	lambdaInvoked              bool
-	successfulAsyncStatusCode  int64             = 202
-	backendFunctionName        string            = "slackbot_backend"
-	somethingWentWrongMsg      string            = "I'm sorry :( \nSomething went wrong and I'm unable to process request."
-	somethingWentWrongSlackMsg slackGo.MsgOption = slackGo.MsgOptionText(
-		somethingWentWrongMsg,
-		false,
-	)
+	slackClient                                *slack.Client
+	successfulAsyncStatusCode                  int64
+	backendFunctionName, somethingWentWrongMsg string
+	somethingWentWrongSlackMsg                 slack.MsgOption
 )
 
 type BackendRequest struct {
@@ -40,13 +32,12 @@ type BackendRequest struct {
 }
 
 func init() {
-	mapboxClient = mapbox.Client{
-		ApiToken: os.Getenv("MAPBOX_API_TOKEN"),
-		ApiUrl:   os.Getenv("MAPBOX_API_URL"),
-	}
-	slackClient = slackGo.New(os.Getenv("SLACK_API_TOKEN"))
-	vaccinesClient = vaccines.Client{ApiUrl: os.Getenv("VACCINE_API_URL")}
-	lambdaInvoked = os.Getenv("LAMBDA") == "true"
+	successfulAsyncStatusCode = 202
+	somethingWentWrongMsg = "I'm sorry :( \nSomething went wrong and I'm unable to process request."
+	somethingWentWrongSlackMsg = slack.MsgOptionText(somethingWentWrongMsg, false)
+
+	backendFunctionName = os.Getenv("AWS_LAMBDA_FUNCTION_NAME") + "_backend"
+	slackClient = slack.New(os.Getenv("SLACK_API_TOKEN"))
 }
 
 func main() {
@@ -77,7 +68,7 @@ func IncomingMessageHandler(ctx context.Context, request events.APIGatewayProxyR
 		return failAndNotifyInSlack("No postal code supplied.", channelId)
 	}
 
-	fmt.Printf("=== Requested postal code `%s` in channel id `%s`", postalCode, channelId)
+	fmt.Printf("=== Requested postal code `%s` in channel id `%s`\n", postalCode, channelId)
 
 	switch vaccineCommand := m.Get("command"); vaccineCommand {
 	case "/pfizer":
@@ -114,7 +105,7 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 	if err != nil {
 		msg := fmt.Sprintf("Could not generate requst for backend lambda: %s", err)
 		fmt.Print(msg)
-		slackClient.PostMessage(channelId, slackGo.MsgOptionText(msg, false))
+		slackClient.PostMessage(channelId, slack.MsgOptionText(msg, false))
 		return
 	}
 
@@ -130,7 +121,7 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 		return
 	}
 
-	if result.StatusCode != &successfulAsyncStatusCode {
+	if *result.StatusCode != successfulAsyncStatusCode {
 		fmt.Printf("Expected a status code of 202, got %d", result.StatusCode)
 		slackClient.PostMessage(channelId, somethingWentWrongSlackMsg)
 		return
@@ -141,6 +132,6 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 
 func failAndNotifyInSlack(message string, channelId string) (events.APIGatewayProxyResponse, error) {
 	fmt.Print(message)
-	slackClient.PostMessage(channelId, slackGo.MsgOptionText(message, false))
+	slackClient.PostMessage(channelId, slack.MsgOptionText(message, false))
 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New(message)
 }
