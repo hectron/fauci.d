@@ -32,4 +32,5 @@ jobs:
           MAPBOX_API_TOKEN: ${{ secrets.MAPBOX_API_TOKEN }}
           MAPBOX_API_URL: ${{ secrets.MAPBOX_API_URL }}
           VACCINE_API_URL: ${{ secrets.VACCINE_API_URL }}
+          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
 
