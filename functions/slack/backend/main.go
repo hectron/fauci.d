@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -120,6 +121,7 @@ func withSentry(f func(context.Context, SlackRequest) (events.APIGatewayProxyRes
 		log.Println("Starting invocation")
 
 		defer sentry.Recover()
+		defer sentry.Flush(time.Second * 2)
 
 		resp, err := function(ctx, s)
 
