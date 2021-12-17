@@ -61,7 +61,7 @@ provider:
     VACCINE_API_URL: ${env:VACCINE_API_URL}
     SENTRY_DSN: ${env:SENTRY_DSN}
     SENTRY_RELEASE: ${env:SENTRY_RELEASE}
-    SENTRY_ENVIRONMENT: production
+    SENTRY_ENVIRONMENT: ${env:SENTRY_ENVIRONMENT}
 
 package:
   patterns:
