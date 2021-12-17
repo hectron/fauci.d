@@ -1,0 +1,35 @@
+name: Auto deploy
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🕵 Running git checkout
+        uses: actions/checkout@v2
+
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+
+      - name: 👩‍🔬Run test suite
+        run: make test
+
+      - name: 🤖 Preparing build
+        run: make build
+
+      - name: Deployment
+        uses: serverless/github-action@master
+        with:
+          args: deploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          MAPBOX_API_TOKEN: ${{ secrets.MAPBOX_API_TOKEN }}
+          MAPBOX_API_URL: ${{ secrets.MAPBOX_API_URL }}
+          VACCINE_API_URL: ${{ secrets.VACCINE_API_URL }}
+
