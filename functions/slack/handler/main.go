@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/hectron/fauci.d/vaccines"
@@ -52,10 +53,6 @@ func init() {
 			DebugWriter: os.Stderr,
 			Environment: os.Getenv("SENTRY_ENVIRONMENT"),
 			Release:     os.Getenv("SENTRY_RELEASE"),
-		})
-
-		sentry.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("function", functionName)
 		})
 	}
 }
@@ -165,7 +162,12 @@ func withSentry(f func(context.Context, events.APIGatewayProxyRequest) (events.A
 	return func(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
 
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("function", functionName)
+		})
+
 		defer sentry.Recover()
+		defer sentry.Flush(time.Second * 2)
 
 		resp, err := function(ctx, e)
 

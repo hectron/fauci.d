@@ -51,9 +51,6 @@ func init() {
 			Release:     os.Getenv("SENTRY_RELEASE"),
 		})
 
-		sentry.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("function", functionName)
-		})
 	}
 }
 
@@ -119,6 +116,10 @@ func withSentry(f func(context.Context, SlackRequest) (events.APIGatewayProxyRes
 
 	return func(ctx context.Context, s SlackRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
+
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("function", functionName)
+		})
 
 		defer sentry.Recover()
 		defer sentry.Flush(time.Second * 2)
