@@ -162,18 +162,19 @@ func withSentry(f func(context.Context, events.APIGatewayProxyRequest) (events.A
 	return func(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
 
-		sentry.CurrentHub().ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("function", functionName)
+		sentryHub := sentry.CurrentHub().Clone()
+
+		sentryHub.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("functionName", functionName)
 		})
 
-		defer sentry.Recover()
-		defer sentry.Flush(time.Second * 2)
+		defer sentryHub.Flush(time.Second * 2)
 
 		resp, err := function(ctx, e)
 
 		if err != nil {
 			log.Printf("Something went wrong! %s\n", err.Error())
-			sentry.CaptureException(err)
+			sentryHub.CaptureException(err)
 		}
 
 		log.Println("Finished invocation")

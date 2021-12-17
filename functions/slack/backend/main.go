@@ -120,7 +120,7 @@ func withSentry(f func(context.Context, SlackRequest) (events.APIGatewayProxyRes
 		sentryHub := sentry.CurrentHub().Clone()
 
 		sentryHub.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("function", functionName)
+			scope.SetTag("functionName", functionName)
 		})
 
 		defer sentryHub.Flush(time.Second * 2)
