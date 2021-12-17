@@ -117,18 +117,19 @@ func withSentry(f func(context.Context, SlackRequest) (events.APIGatewayProxyRes
 	return func(ctx context.Context, s SlackRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
 
-		sentry.CurrentHub().ConfigureScope(func(scope *sentry.Scope) {
+		sentryHub := sentry.CurrentHub().Clone()
+
+		sentryHub.ConfigureScope(func(scope *sentry.Scope) {
 			scope.SetTag("function", functionName)
 		})
 
-		defer sentry.Recover()
-		defer sentry.Flush(time.Second * 2)
+		defer sentryHub.Flush(time.Second * 2)
 
 		resp, err := function(ctx, s)
 
 		if err != nil {
 			log.Printf("Something went wrong! %s\n", err.Error())
-			sentry.CaptureException(err)
+			sentryHub.CaptureException(err)
 		}
 
 		log.Println("Finished invocation")
