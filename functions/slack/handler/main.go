@@ -160,15 +160,15 @@ func failAndNotifyInSlack(message string, channelId string) (events.APIGatewayPr
 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New(message)
 }
 
-func withSentry(f func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)) func() (events.APIGatewayProxyResponse, error) {
+func withSentry(f func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)) func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	function := f
 
-	return func() (events.APIGatewayProxyResponse, error) {
+	return func(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
 
 		defer sentry.Recover()
 
-		resp, err := function()
+		resp, err := function(ctx, e)
 
 		if err != nil {
 			log.Printf("Something went wrong! %s\n", err.Error())
