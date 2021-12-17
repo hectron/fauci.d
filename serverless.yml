@@ -59,6 +59,9 @@ provider:
     MAPBOX_API_TOKEN: ${env:MAPBOX_API_TOKEN}
     MAPBOX_API_URL: ${env:MAPBOX_API_URL}
     VACCINE_API_URL: ${env:VACCINE_API_URL}
+    SENTRY_DSN: ${env:SENTRY_DSN}
+    SENTRY_RELEASE: ${env:SENTRY_RELEASE}
+    SENTRY_ENVIRONMENT: production
 
 package:
   patterns:
