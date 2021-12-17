@@ -162,7 +162,7 @@ func withSentry(f func(context.Context, events.APIGatewayProxyRequest) (events.A
 	return func(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
 
-		sentry.ConfigureScope(func(scope *sentry.Scope) {
+		sentry.CurrentHub().ConfigureScope(func(scope *sentry.Scope) {
 			scope.SetTag("function", functionName)
 		})
 

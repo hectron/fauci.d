@@ -117,7 +117,7 @@ func withSentry(f func(context.Context, SlackRequest) (events.APIGatewayProxyRes
 	return func(ctx context.Context, s SlackRequest) (events.APIGatewayProxyResponse, error) {
 		log.Println("Starting invocation")
 
-		sentry.ConfigureScope(func(scope *sentry.Scope) {
+		sentry.CurrentHub().ConfigureScope(func(scope *sentry.Scope) {
 			scope.SetTag("function", functionName)
 		})
 
