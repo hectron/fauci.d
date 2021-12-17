@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/hectron/fauci.d/vaccines"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
@@ -23,6 +25,7 @@ var (
 	successfulAsyncStatusCode                  int64
 	backendFunctionName, somethingWentWrongMsg string
 	somethingWentWrongSlackMsg                 slack.MsgOption
+	sentryEnabled                              bool
 )
 
 type BackendRequest struct {
@@ -38,10 +41,31 @@ func init() {
 
 	backendFunctionName = os.Getenv("AWS_LAMBDA_FUNCTION_NAME") + "_backend"
 	slackClient = slack.New(os.Getenv("SLACK_API_TOKEN"))
+
+	sentryEnabled = os.Getenv("SENTRY_DSN") != ""
+
+	if sentryEnabled {
+		sentry.Init(sentry.ClientOptions{
+			Dsn:         os.Getenv("SENTRY_DSN"),
+			Debug:       true,
+			DebugWriter: os.Stderr,
+			Environment: os.Getenv("SENTRY_ENVIRONMENT"),
+			Release:     os.Getenv("SENTRY_RELEASE"),
+		})
+
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("backend", backendFunctionName)
+		})
+	}
 }
 
 func main() {
-	lambda.Start(IncomingMessageHandler)
+	if sentryEnabled {
+		log.Println("Sentry enabled and bootstrapped!")
+		lambda.Start(withSentry(IncomingMessageHandler))
+	} else {
+		lambda.Start(IncomingMessageHandler)
+	}
 }
 
 func IncomingMessageHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -58,7 +82,7 @@ func IncomingMessageHandler(ctx context.Context, request events.APIGatewayProxyR
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, err
 	}
 
-	fmt.Printf("=== Request: %s\n", request.Body)
+	log.Printf("=== Request: %s\n", request.Body)
 
 	if channelId = m.Get("channel_id"); channelId == "" {
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New("Could not determine channel to post to")
@@ -68,7 +92,7 @@ func IncomingMessageHandler(ctx context.Context, request events.APIGatewayProxyR
 		return failAndNotifyInSlack("No postal code supplied.", channelId)
 	}
 
-	fmt.Printf("=== Requested postal code `%s` in channel id `%s`\n", postalCode, channelId)
+	log.Printf("=== Requested postal code `%s` in channel id `%s`\n", postalCode, channelId)
 
 	switch vaccineCommand := m.Get("command"); vaccineCommand {
 	case "/pfizer":
@@ -104,7 +128,7 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 
 	if err != nil {
 		msg := fmt.Sprintf("Could not generate requst for backend lambda: %s", err)
-		fmt.Print(msg)
+		log.Print(msg)
 		slackClient.PostMessage(channelId, slack.MsgOptionText(msg, false))
 		return
 	}
@@ -116,22 +140,43 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 	})
 
 	if err != nil {
-		fmt.Printf("Error invoking backend lambda: %s", err)
+		log.Printf("Error invoking backend lambda: %s", err)
 		slackClient.PostMessage(channelId, somethingWentWrongSlackMsg)
 		return
 	}
 
 	if *result.StatusCode != successfulAsyncStatusCode {
-		fmt.Printf("Expected a status code of 202, got %d", result.StatusCode)
+		log.Printf("Expected a status code of 202, got %d", result.StatusCode)
 		slackClient.PostMessage(channelId, somethingWentWrongSlackMsg)
 		return
 	}
 
-	fmt.Printf("Successfully invoked %s", backendFunctionName)
+	log.Printf("Successfully invoked %s", backendFunctionName)
 }
 
 func failAndNotifyInSlack(message string, channelId string) (events.APIGatewayProxyResponse, error) {
-	fmt.Print(message)
+	log.Print(message)
 	slackClient.PostMessage(channelId, slack.MsgOptionText(message, false))
 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New(message)
+}
+
+func withSentry(f func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error)) func() (events.APIGatewayProxyResponse, error) {
+	function := f
+
+	return func() (events.APIGatewayProxyResponse, error) {
+		log.Println("Starting invocation")
+
+		defer sentry.Recover()
+
+		resp, err := function()
+
+		if err != nil {
+			log.Printf("Something went wrong! %s\n", err.Error())
+			sentry.CaptureException(err)
+		}
+
+		log.Println("Finished invocation")
+
+		return resp, err
+	}
 }
