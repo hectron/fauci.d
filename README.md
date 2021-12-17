@@ -63,7 +63,7 @@ In order to deploy the application, you will need:
 
 - [Make](https://www.gnu.org/software/make/)
 - [serverless CLI](https://www.serverless.com/framework/docs/providers), [**configured to support AWS**](https://www.serverless.com/framework/docs/providers/aws/guide/installation)
-- Environment variables required in [`serverless.yml`](https://github.com/hectron/fauci.d/blob/main/serverless.yml#L52-L57)
+- Environment variables required in [`serverless.yml`](https://github.com/hectron/fauci.d/blob/main/serverless.yml#L52-L57) (these can be available using `.envrc`)
 
 ### Actual deployment
 
