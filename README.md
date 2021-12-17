@@ -39,6 +39,9 @@ If you want to test out this application locally, you'll need to [set up a Slack
 
 - `SLACK_API_TOKEN` - the token for your bot
 - `MAPBOX_API_TOKEN` - the token to use to communicate with Mapbox
+- `SENTRY_DSN` - URL to post messages to sentry
+- `SENTRY_ENVIRONMENT` - which environment the application is running on
+- `SENTRY_RELEASE` - used to tag the errors in sentry
 
 Useful files:
 
@@ -59,7 +62,13 @@ go run example.go
 
 ## Deployment
 
-In order to deploy the application, you will need:
+The application is now automatically deployed using Github Actions when a new **Release** is created. Check the file `.github/workflows/cd.yml` for more information.
+
+If you add any environment variable dependencies, add them to the repository's secrets in Github.
+
+### Manual Deployment
+
+In order to **manually** deploy the application, you will need:
 
 - [Make](https://www.gnu.org/software/make/)
 - [serverless CLI](https://www.serverless.com/framework/docs/providers), [**configured to support AWS**](https://www.serverless.com/framework/docs/providers/aws/guide/installation)
