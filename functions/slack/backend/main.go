@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/getsentry/sentry-go"
 	"github.com/hectron/fauci.d/mapbox"
 	"github.com/hectron/fauci.d/slack"
 	"github.com/hectron/fauci.d/vaccines"
@@ -25,6 +27,8 @@ var (
 	mapboxClient   mapbox.Client
 	vaccinesClient vaccines.Client
 	slackClient    *slackGo.Client
+	sentryEnabled  bool
+	functionName   string
 )
 
 func init() {
@@ -34,18 +38,36 @@ func init() {
 		ApiUrl:   os.Getenv("MAPBOX_API_URL"),
 	}
 	slackClient = slackGo.New(os.Getenv("SLACK_API_TOKEN"))
+	sentryEnabled = os.Getenv("SENTRY_DSN") != ""
+	functionName = os.Getenv("AWS_LAMBDA_FUNCTION_NAME")
+
+	if sentryEnabled {
+		sentry.Init(sentry.ClientOptions{
+			Dsn:         os.Getenv("SENTRY_DSN"),
+			Debug:       true,
+			DebugWriter: os.Stderr,
+			Environment: os.Getenv("SENTRY_ENVIRONMENT"),
+			Release:     os.Getenv("SENTRY_RELEASE"),
+		})
+
+		sentry.ConfigureScope(func(scope *sentry.Scope) {
+			scope.SetTag("function", functionName)
+		})
+	}
 }
 
 func main() {
-	fmt.Println("Starting the lambda")
-	lambda.Start(MessageHandler)
-	fmt.Println("Done with the lambda")
+	if sentryEnabled {
+		lambda.Start(withSentry(MessageHandler))
+	} else {
+		lambda.Start(MessageHandler)
+	}
 }
 
 func MessageHandler(ctx context.Context, request SlackRequest) (events.APIGatewayProxyResponse, error) {
 	notifyStartToUser(request)
 
-	fmt.Printf("Looking up coordinates for %s", request.PostalCode)
+	log.Printf("Looking up coordinates for %s\n", request.PostalCode)
 
 	coordinates, err := mapboxClient.GeocodePostalCode(request.PostalCode)
 
@@ -59,7 +81,7 @@ func MessageHandler(ctx context.Context, request SlackRequest) (events.APIGatewa
 
 	req := vaccines.ApiRequest{Vaccine: request.Vaccine, Lat: coordinates.Latitude, Long: coordinates.Longitude}
 
-	fmt.Printf("Looking up %s vaccine appointments", request.Vaccine.String())
+	log.Printf("Looking up %s vaccine appointments\n", request.Vaccine.String())
 	providers, err := vaccinesClient.FindVaccines(req)
 
 	if err != nil {
@@ -70,24 +92,44 @@ func MessageHandler(ctx context.Context, request SlackRequest) (events.APIGatewa
 		)
 	}
 
-	fmt.Println("Posting to Slack")
 	blocks := slack.BuildBlocksForProviders(request.PostalCode, request.Vaccine.String(), providers)
 	slackClient.PostMessage(request.ChannelId, slackGo.MsgOptionBlocks(blocks...))
 
-	fmt.Printf("Successfully sent a message to %s", request.ChannelId)
+	log.Printf("Successfully sent a message to %s\n", request.ChannelId)
 
 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 200}, nil
 }
 
 func failAndNotifyInSlack(err error, message string, channelId string) (events.APIGatewayProxyResponse, error) {
-	fmt.Println(err)
+	log.Println(err)
 	slackClient.PostMessage(channelId, slackGo.MsgOptionText(message, false))
 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, errors.New(message)
 }
 
 func notifyStartToUser(request SlackRequest) {
 	msg := fmt.Sprintf("Looking up appointments for the %s vaccine in %s... :eyes:", request.Vaccine.String(), request.PostalCode)
-	fmt.Println(msg)
+	log.Println(msg)
 
 	slackClient.PostMessage(request.ChannelId, slackGo.MsgOptionText(msg, true))
+}
+
+func withSentry(f func(context.Context, SlackRequest) (events.APIGatewayProxyResponse, error)) func(context.Context, SlackRequest) (events.APIGatewayProxyResponse, error) {
+	function := f
+
+	return func(ctx context.Context, s SlackRequest) (events.APIGatewayProxyResponse, error) {
+		log.Println("Starting invocation")
+
+		defer sentry.Recover()
+
+		resp, err := function(ctx, s)
+
+		if err != nil {
+			log.Printf("Something went wrong! %s\n", err.Error())
+			sentry.CaptureException(err)
+		}
+
+		log.Println("Finished invocation")
+
+		return resp, err
+	}
 }

@@ -21,11 +21,11 @@ import (
 )
 
 var (
-	slackClient                                *slack.Client
-	successfulAsyncStatusCode                  int64
-	backendFunctionName, somethingWentWrongMsg string
-	somethingWentWrongSlackMsg                 slack.MsgOption
-	sentryEnabled                              bool
+	slackClient                                              *slack.Client
+	successfulAsyncStatusCode                                int64
+	functionName, backendFunctionName, somethingWentWrongMsg string
+	somethingWentWrongSlackMsg                               slack.MsgOption
+	sentryEnabled                                            bool
 )
 
 type BackendRequest struct {
@@ -39,7 +39,8 @@ func init() {
 	somethingWentWrongMsg = "I'm sorry :( \nSomething went wrong and I'm unable to process request."
 	somethingWentWrongSlackMsg = slack.MsgOptionText(somethingWentWrongMsg, false)
 
-	backendFunctionName = os.Getenv("AWS_LAMBDA_FUNCTION_NAME") + "_backend"
+	functionName = os.Getenv("AWS_LAMBDA_FUNCTION_NAME")
+	backendFunctionName = fmt.Sprintf("%s_backend", functionName)
 	slackClient = slack.New(os.Getenv("SLACK_API_TOKEN"))
 
 	sentryEnabled = os.Getenv("SENTRY_DSN") != ""
@@ -54,7 +55,7 @@ func init() {
 		})
 
 		sentry.ConfigureScope(func(scope *sentry.Scope) {
-			scope.SetTag("backend", backendFunctionName)
+			scope.SetTag("function", functionName)
 		})
 	}
 }
@@ -127,7 +128,7 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 	})
 
 	if err != nil {
-		msg := fmt.Sprintf("Could not generate requst for backend lambda: %s", err)
+		msg := fmt.Sprintf("Could not generate request for backend lambda: %s", err)
 		log.Print(msg)
 		slackClient.PostMessage(channelId, slack.MsgOptionText(msg, false))
 		return
@@ -150,8 +151,6 @@ func invokeVaccineFinderLambda(channelId string, postalCode string, vaccine vacc
 		slackClient.PostMessage(channelId, somethingWentWrongSlackMsg)
 		return
 	}
-
-	log.Printf("Successfully invoked %s", backendFunctionName)
 }
 
 func failAndNotifyInSlack(message string, channelId string) (events.APIGatewayProxyResponse, error) {
